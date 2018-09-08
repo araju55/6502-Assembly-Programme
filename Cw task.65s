@@ -1,0 +1,137 @@
+       *= $2000
+
+io_area	= $e000
+io_cls	= io_area + 0	; clear terminal window
+io_putc	= io_area + 1	; put char
+io_putr	= io_area + 2	; put raw char (doesn't interpret CR/LF)
+io_puth	= io_area + 3	; put as hex number
+io_getc	= io_area + 4	; get char
+       STA io_cls
+       JMP MAIN
+                        ;The final message and input from user
+PRINTIN
+       LDX #$00
+INAROUND
+       LDA MSG,X
+       BEQ INAROUNDEND
+       STA io_putc
+       INX
+       JMP INAROUND
+INAROUNDEND
+       RTS
+       
+USERINPUT
+       LDA io_getc
+       BEQ USERINPUT
+       STA io_putc
+       CLC
+       SBC #$2F
+       STA ValidNumber1
+USERINPUT2
+       LDA io_getc
+       BEQ USERINPUT2
+       STA io_putc
+       CLC
+       SBC #$2F
+       STA ValidNumber2
+USERINPUT3
+       LDA io_getc
+       BEQ USERINPUT3
+       STA io_putc
+       CLC
+       SBC #$2F
+       STA ValidNumber3
+       
+       RTS
+                        ;The end of message and input from user
+                        ;The start of the getting 100s subroutine
+GETTING100s
+      LDX ValidNumber1
+      CLC
+LOOPS100s
+      BEQ LOOPEND100s
+      LDA H100s
+      ADC #100
+      STA H100s
+      DEX
+      BEQ LOOPEND100s
+      BNE LOOPS100s
+LOOPEND100s
+      RTS
+                        ;The end of getting 100s subroutine
+                        ;The start of getting 10s subroutine
+GETTING10s
+      LDX ValidNumber2
+      CLC
+LOOPS10s
+      BEQ LOOPEND10s
+      LDA T10s
+      ADC #10
+      STA T10s
+      DEX
+      BEQ LOOPEND10s
+      BNE LOOPS10s
+LOOPEND10s
+      RTS
+                        ;The end of getting 10s subroutine
+                        ;The start of getting 01s subroutine
+GETTING01s
+      LDX ValidNumber3
+      CLC
+LOOPS01s
+      BEQ LOOPEND01s
+      LDA U01s
+      ADC #1
+      STA U01s
+      DEX
+      BEQ LOOPEND01s
+      BNE LOOPS01s
+LOOPEND01s
+      RTS
+                        ;The end of getting 01s subroutine
+                        ;The start of addingtogether subroutine
+ADDINGTOGETHER      
+      LDA H100s
+      ADC T10s
+      ADC U01s
+      STA SUM
+      STA io_puth
+      RTS
+      
+PARTIN
+      LDA #10
+      STA io_putc
+      LDA #13
+      STA io_putc
+      
+      RTS
+      
+      
+MAIN
+      JSR PRINTIN
+      JSR USERINPUT
+      JSR GETTING100s
+      JSR GETTING10s
+      JSR GETTING01s
+      JSR PARTIN
+      JSR ADDINGTOGETHER
+      
+END
+      BRK
+      
+      
+ValidNumber1:  .BYTE$00  
+ValidNumber2:  .BYTE$00
+ValidNumber3:  .BYTE$00
+H100s:         .BYTE$00  
+T10s:          .BYTE$00 
+U01s:          .BYTE$00
+SUM:           .BYTE$00
+BINARYBUFFER:  .DCB $9, $00
+MSG:           .ASCII "PLEASE CAN YOU ENTER A 3-DIGIT NUMBER: ", $00
+COUNTER:       .BYTE $00                     
+      
+      
+                      
+                                      
+             

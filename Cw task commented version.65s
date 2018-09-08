@@ -1,0 +1,137 @@
+       *= $2000         ;this says where to place the start of the code
+
+io_area	= $e000
+io_cls	= io_area + 0	; clear terminal window
+io_putc	= io_area + 1	; put char-puts the character into the assembler programme
+io_putr	= io_area + 2	; put raw char (doesn't interpret CR/LF)-puts the raw character
+io_puth	= io_area + 3	; put as hex number-the assembler puts it as a hexadecimal number
+io_getc	= io_area + 4	; get char- Then, this gets the character
+       STA io_cls       ; (STA)-Store Accumulator In Memory 
+       JMP MAIN         ; Jumps to the main programme (JMP MAIN)
+                        ; The final message and input from user
+PRINTIN                 ; Prints out the input statement, (PRINTIN)
+       LDX #$00         ; Load Index X with Memory (LDX)
+INAROUND                ; INAROUND- prints out each character in turn
+       LDA MSG,X        ; Loads the message- Load Accumulator with Memory(LDA)
+       BEQ INAROUNDEND  ; (BEQ)- Branch Equal
+       STA io_putc      ; (STA)- Store Accumulator In Memory- puts character
+       INX              ; Increment Index by One
+       JMP INAROUND     ; Jumps to INAROUND (JMP INAROUND)
+INAROUNDEND  
+       RTS              ; Returns back to the sender  
+       
+USERINPUT               ; takes in input from the user
+       LDA io_getc      ; Loads the characters- Load Accumulator with Memory- gets characters
+       BEQ USERINPUT    ; (BEQ)- Branch Equal- keeps going back to getc until the user types something in 
+       STA io_putc      ; (STA)- Store Accumulator In Memory- puts character
+       CLC              ; (CLC)- Clear Carry Flag
+       SBC #$2F         ; (SBC)- Subtract Memory from Accumulator with Borrow- takes of 2F from the ASCI value to show the number which the user has inputted
+       STA ValidNumber1 ; (STA)- Store Accumulator In Memory- stores it in ValidNumber1 (this is the value that the entered that is store into ValidNumber1
+USERINPUT2              ; takes in the second integer input from the user (same process but for the second number) 
+       LDA io_getc
+       BEQ USERINPUT2
+       STA io_putc
+       CLC
+       SBC #$2F
+       STA ValidNumber2
+USERINPUT3
+       LDA io_getc
+       BEQ USERINPUT3   ; takes in the third integer input from the user (same process but for the third number)
+       STA io_putc
+       CLC
+       SBC #$2F
+       STA ValidNumber3
+       
+       RTS
+                        ;The end of message and input from user
+                        ;The start of the getting 100s subroutine
+GETTING100s
+      LDX ValidNumber1
+      CLC
+LOOPS100s
+      BEQ LOOPEND100s
+      LDA H100s
+      ADC #100
+      STA H100s
+      DEX
+      BEQ LOOPEND100s
+      BNE LOOPS100s
+LOOPEND100s
+      RTS
+                        ;The end of getting 100s subroutine
+                        ;The start of getting 10s subroutine
+GETTING10s
+      LDX ValidNumber2
+      CLC
+LOOPS10s
+      BEQ LOOPEND10s
+      LDA T10s
+      ADC #10
+      STA T10s
+      DEX
+      BEQ LOOPEND10s
+      BNE LOOPS10s
+LOOPEND10s
+      RTS
+                        ;The end of getting 10s subroutine
+                        ;The start of getting 01s subroutine
+GETTING01s
+      LDX ValidNumber3
+      CLC
+LOOPS01s
+      BEQ LOOPEND01s
+      LDA U01s
+      ADC #1
+      STA U01s
+      DEX
+      BEQ LOOPEND01s
+      BNE LOOPS01s
+LOOPEND01s
+      RTS
+                        ;The end of getting 01s subroutine
+                        ;The start of addingtogether subroutine
+ADDINGTOGETHER          ; creates the input which the user entered by adding the 100s, 10s and 01s together
+      LDA H100s
+      ADC T10s
+      ADC U01s
+      STA SUM
+      STA io_puth       ; prints out the hexadecimal in one line
+      RTS
+      
+PARTIN                  ; this subroutine tells the program to print out on a different line 
+      LDA #10
+      STA io_putc
+      LDA #13
+      STA io_putc
+      
+      RTS
+      
+      
+MAIN
+      JSR PRINTIN
+      JSR USERINPUT
+      JSR GETTING100s  ;creates hundreds place value
+      JSR GETTING10s   ;creates tens place value
+      JSR GETTING01s   ;creates units place value
+      JSR PARTIN
+      JSR ADDINGTOGETHER
+      
+END
+      BRK
+      
+      
+ValidNumber1:  .BYTE$00  
+ValidNumber2:  .BYTE$00
+ValidNumber3:  .BYTE$00
+H100s:         .BYTE$00  
+T10s:          .BYTE$00 
+U01s:          .BYTE$00
+SUM:           .BYTE$00
+BINARYBUFFER:  .DCB $9, $00
+MSG:           .ASCII "PLEASE CAN YOU ENTER A 3-DIGIT NUMBER: ", $00
+COUNTER:       .BYTE $00                     
+      
+      
+                      
+                                      
+             
